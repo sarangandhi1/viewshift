@@ -273,42 +273,56 @@ export default function Home() {
               <p className="text-sm text-gray-400 mb-4">{results.length} results — ranked by relevance, not views</p>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {results.map((video) => (
-                  <a
+                  <div
                     key={video.id}
-                    href={`/analyse?v=${video.id}`} target="_blank" rel="noreferrer"
-                    className="group rounded-2xl border border-gray-100 overflow-hidden hover:border-[#6C63FF] hover:shadow-md transition-all cursor-pointer"
+                    className="group rounded-2xl border border-gray-100 overflow-hidden hover:border-[#6C63FF] hover:shadow-md transition-all flex flex-col"
                   >
-                    {/* Thumbnail */}
-                    <div className="relative">
-                      <img
-                        src={video.thumbnail}
-                        alt={video.title}
-                        className="w-full h-44 object-cover"
-                      />
-                      <div className="absolute bottom-2 right-2 bg-black bg-opacity-80 text-white text-xs px-1.5 py-0.5 rounded">
-                        {video.duration}
+                    {/* Clickable area → YouTube video (opens in new tab) */}
+                    <a
+                      href={`https://www.youtube.com/watch?v=${video.id}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="block cursor-pointer"
+                    >
+                      {/* Thumbnail */}
+                      <div className="relative">
+                        <img
+                          src={video.thumbnail}
+                          alt={video.title}
+                          className="w-full h-44 object-cover"
+                        />
+                        <div className="absolute bottom-2 right-2 bg-black bg-opacity-80 text-white text-xs px-1.5 py-0.5 rounded">
+                          {video.duration}
+                        </div>
+                        {/* VS Score badge */}
+                        <div className="absolute top-2 left-2 bg-[#6C63FF] text-white text-xs px-2 py-1 rounded-full font-bold">
+                          VS {video.vsScore}
+                        </div>
                       </div>
-                      {/* VS Score badge */}
-                      <div className="absolute top-2 left-2 bg-[#6C63FF] text-white text-xs px-2 py-1 rounded-full font-bold">
-                        VS {video.vsScore}
-                      </div>
-                    </div>
 
-                    {/* Info */}
-                    <div className="p-4">
-                      <h3 className="text-sm font-semibold text-gray-900 line-clamp-2 group-hover:text-[#6C63FF] transition-colors mb-1">
-                        {video.title}
-                      </h3>
-                      <p className="text-xs text-gray-500 mb-1">{video.channel}</p>
-                      <p className="text-xs text-gray-400">{video.views} views · {video.published}</p>
-                      <div className="mt-3 flex items-center gap-1 text-xs text-[#6C63FF] font-medium opacity-0 group-hover:opacity-100 transition-opacity">
-                        <span>Analyse this video</span>
-                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7"/>
-                        </svg>
+                      {/* Info */}
+                      <div className="p-4">
+                        <h3 className="text-sm font-semibold text-gray-900 line-clamp-2 group-hover:text-[#6C63FF] transition-colors mb-1">
+                          {video.title}
+                        </h3>
+                        <p className="text-xs text-gray-500 mb-1">{video.channel}</p>
+                        <p className="text-xs text-gray-400">{video.views} views · {video.published}</p>
                       </div>
-                    </div>
-                  </a>
+                    </a>
+
+                    {/* Analyse with AI button — opens /analyse in new tab */}
+                    <a
+                      href={`/analyse?v=${video.id}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="mt-auto mx-4 mb-4 bg-[#6C63FF] text-white text-sm font-semibold py-2.5 px-4 rounded-xl hover:bg-[#5952e0] transition-colors flex items-center justify-center gap-2"
+                    >
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M5 2a1 1 0 011 1v1h1a1 1 0 010 2H6v1a1 1 0 01-2 0V6H3a1 1 0 010-2h1V3a1 1 0 011-1zm0 10a1 1 0 011 1v1h1a1 1 0 110 2H6v1a1 1 0 11-2 0v-1H3a1 1 0 110-2h1v-1a1 1 0 011-1zM12 2a1 1 0 01.967.744L14.146 7.2 17.5 9.134a1 1 0 010 1.732l-3.354 1.935-1.18 4.455a1 1 0 01-1.933 0L9.854 12.8 6.5 10.866a1 1 0 010-1.732l3.354-1.935 1.18-4.455A1 1 0 0112 2z"/>
+                      </svg>
+                      <span>Analyse with AI</span>
+                    </a>
+                  </div>
                 ))}
               </div>
             </>
