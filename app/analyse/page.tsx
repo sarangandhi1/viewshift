@@ -88,6 +88,8 @@ function AnalysePage() {
   const [showEmail, setShowEmail] = useState(false);
   const [email, setEmail] = useState('');
   const [emailSent, setEmailSent] = useState(false);
+  const [subscribing, setSubscribing] = useState(false);
+  const [subscribeError, setSubscribeError] = useState('');
 
   useEffect(() => {
     if (!videoId) return;
@@ -123,6 +125,30 @@ function AnalysePage() {
     { text: 'Analysing with Claude', subtext: 'Scoring relevance, depth, and quality' },
     { text: 'Almost there', subtext: 'Surfacing the most useful comments' },
   ];
+
+  const handleSubscribe = async () => {
+    setSubscribeError('');
+    if (!email.trim()) return;
+    setSubscribing(true);
+    try {
+      const res = await fetch('/api/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email.trim() }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setEmailSent(true);
+      } else {
+        setSubscribeError(data.error || 'Could not subscribe. Please try again.');
+      }
+    } catch (err) {
+      console.error('Subscribe failed:', err);
+      setSubscribeError('Something went wrong. Please try again.');
+    } finally {
+      setSubscribing(false);
+    }
+  };
 
   if (!videoId) {
     return (
@@ -349,29 +375,47 @@ function AnalysePage() {
           {/* Email capture */}
           {showEmail && !emailSent && (
             <div className="bg-[#6C63FF] rounded-2xl p-6 text-white">
-              <h3 className="font-bold text-lg mb-1">Get weekly AI-curated YouTube finds</h3>
-              <p className="text-purple-200 text-sm mb-4">Free. No spam. Unsubscribe any time.</p>
+              <h3 className="font-bold text-lg mb-1">Sharper search. Smarter strategy.</h3>
+              <p className="text-purple-200 text-sm mb-4">AI that actually works — weekly. No spam. Unsubscribe any time.</p>
               <div className="flex gap-2">
                 <input
                   type="email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => { setEmail(e.target.value); setSubscribeError(''); }}
+                  onKeyDown={(e) => { if (e.key === 'Enter' && !subscribing) handleSubscribe(); }}
                   placeholder="your@email.com"
-                  className="flex-1 px-4 py-2.5 rounded-xl text-gray-900 text-sm outline-none"
+                  disabled={subscribing}
+                  className="flex-1 px-4 py-2.5 rounded-xl text-gray-900 text-sm outline-none disabled:opacity-60"
                 />
                 <button
-                  onClick={() => { if (email) setEmailSent(true); }}
-                  className="bg-white text-[#6C63FF] font-semibold px-4 py-2.5 rounded-xl text-sm hover:bg-purple-50 transition-colors"
+                  onClick={handleSubscribe}
+                  disabled={subscribing || !email.trim()}
+                  className="bg-white text-[#6C63FF] font-semibold px-4 py-2.5 rounded-xl text-sm hover:bg-purple-50 transition-colors disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2 min-w-[110px] justify-center"
                 >
-                  Subscribe
+                  {subscribing ? (
+                    <>
+                      <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
+                        <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" opacity="0.25" />
+                        <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+                      </svg>
+                      <span>Subscribing</span>
+                    </>
+                  ) : (
+                    <span>Subscribe</span>
+                  )}
                 </button>
               </div>
+              {subscribeError && (
+                <p className="text-purple-100 text-xs mt-3 bg-purple-900 bg-opacity-30 rounded-lg px-3 py-2">
+                  {subscribeError}
+                </p>
+              )}
             </div>
           )}
 
           {emailSent && (
             <div className="bg-green-50 border border-green-200 rounded-2xl p-5 text-center">
-              <p className="text-green-700 font-medium">✓ You are in! Check your inbox.</p>
+              <p className="text-green-700 font-medium">✓ You&apos;re subscribed. We&apos;ll be in touch.</p>
             </div>
           )}
 
