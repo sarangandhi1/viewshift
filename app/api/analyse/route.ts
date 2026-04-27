@@ -1,7 +1,34 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getVideoDetails, getVideoComments } from '@/lib/youtube';
 import { analyseVideoTranscript, analyseComments } from '@/lib/claude';
-import { YoutubeTranscript } from 'youtube-transcript';
+
+const SUPADATA_API_KEY = process.env.SUPADATA_API_KEY;
+
+async function fetchTranscriptFromSupadata(videoId: string): Promise<string> {
+  if (!SUPADATA_API_KEY) {
+    console.error('SUPADATA_API_KEY not configured');
+    return '';
+  }
+
+  try {
+    const url = `https://api.supadata.ai/v1/transcript?url=https://www.youtube.com/watch?v=${videoId}&text=true&mode=auto`;
+    const res = await fetch(url, {
+      headers: { 'x-api-key': SUPADATA_API_KEY },
+    });
+
+    if (!res.ok) {
+      console.error(`Supadata returned ${res.status} for video ${videoId}`);
+      return '';
+    }
+
+    const data = await res.json();
+    // Supadata returns { content: "...", lang: "en", availableLangs: [...] } when text=true
+    return typeof data.content === 'string' ? data.content : '';
+  } catch (err) {
+    console.error('Supadata fetch error:', err);
+    return '';
+  }
+}
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -29,14 +56,8 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Get transcript
-    let transcriptText = '';
-    try {
-      const transcript = await YoutubeTranscript.fetchTranscript(videoId);
-      transcriptText = transcript.map((t) => t.text).join(' ');
-    } catch {
-      transcriptText = '';
-    }
+    // Get transcript via Supadata (works server-side, no IP blocking)
+    const transcriptText = await fetchTranscriptFromSupadata(videoId);
 
     // Run AI analysis
     const hasTranscript = transcriptText.length > 100;
