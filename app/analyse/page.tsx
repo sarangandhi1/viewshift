@@ -80,6 +80,7 @@ function AnalysePage() {
   const topic = searchParams.get('topic') || '';
 
   const [loading, setLoading] = useState(true);
+  const [loadingStage, setLoadingStage] = useState(0);
   const [error, setError] = useState('');
   const [video, setVideo] = useState<VideoData | null>(null);
   const [scorecard, setScorecard] = useState<ScoreCard | null>(null);
@@ -102,6 +103,26 @@ function AnalysePage() {
       .catch(() => setError('Something went wrong. Please try again.'))
       .finally(() => setLoading(false));
   }, [videoId, topic]);
+
+  // Progress through loading stages so users know things are happening
+  useEffect(() => {
+    if (!loading) return;
+    const t1 = setTimeout(() => setLoadingStage(1), 2000);
+    const t2 = setTimeout(() => setLoadingStage(2), 7000);
+    const t3 = setTimeout(() => setLoadingStage(3), 14000);
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearTimeout(t3);
+    };
+  }, [loading]);
+
+  const loadingStages = [
+    { text: 'Fetching video details', subtext: 'Title, channel, and thumbnail' },
+    { text: 'Reading the transcript', subtext: 'Pulling captions from the video' },
+    { text: 'Analysing with Claude', subtext: 'Scoring relevance, depth, and quality' },
+    { text: 'Almost there', subtext: 'Surfacing the most useful comments' },
+  ];
 
   if (!videoId) {
     return (
@@ -142,15 +163,80 @@ function AnalysePage() {
       </header>
 
       {loading ? (
-        <div className="max-w-3xl mx-auto px-6 py-16 text-center">
-          <div className="animate-pulse space-y-4">
-            <div className="h-8 bg-gray-200 rounded w-3/4 mx-auto" />
-            <div className="h-4 bg-gray-200 rounded w-1/2 mx-auto" />
-            <div className="h-48 bg-gray-200 rounded-2xl mt-8" />
+        <div className="max-w-3xl mx-auto px-6 py-8 space-y-6">
+          {/* Status pill — tells user what's happening so 13s feels like progress, not a hang */}
+          <div className="flex justify-center mb-2">
+            <div className="bg-white border border-gray-200 shadow-sm rounded-full pl-3 pr-5 py-2.5 flex items-center gap-3">
+              <svg width="22" height="22" viewBox="0 0 70 70" xmlns="http://www.w3.org/2000/svg" className="flex-shrink-0">
+                <defs>
+                  <linearGradient id="loadingHg" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="#6C63FF" />
+                    <stop offset="100%" stopColor="#00D4FF" />
+                  </linearGradient>
+                </defs>
+                <path d="M15,35 Q35,10 60,35 Q35,60 15,35Z" fill="none" stroke="url(#loadingHg)" strokeWidth="3" />
+                <circle cx="37" cy="35" r="10" fill="url(#loadingHg)" className="animate-pulse" />
+                <circle cx="37" cy="35" r="4.5" fill="white" />
+              </svg>
+              <div className="text-left">
+                <p className="text-sm font-semibold text-gray-900 leading-tight">{loadingStages[loadingStage].text}</p>
+                <p className="text-xs text-gray-500 leading-tight">{loadingStages[loadingStage].subtext}</p>
+              </div>
+              <div className="flex gap-1 ml-1">
+                <div className="w-1.5 h-1.5 rounded-full bg-[#6C63FF] animate-bounce" style={{ animationDelay: '0ms' }} />
+                <div className="w-1.5 h-1.5 rounded-full bg-[#6C63FF] animate-bounce" style={{ animationDelay: '150ms' }} />
+                <div className="w-1.5 h-1.5 rounded-full bg-[#6C63FF] animate-bounce" style={{ animationDelay: '300ms' }} />
+              </div>
+            </div>
           </div>
-          <p className="text-gray-400 mt-6 text-sm">
-            Analysing video — fetching transcript and comments...
-          </p>
+
+          {/* Skeleton: video card */}
+          <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden animate-pulse">
+            <div className="bg-gray-200 h-56 w-full" />
+            <div className="p-5 space-y-3">
+              <div className="h-5 bg-gray-200 rounded w-3/4" />
+              <div className="h-3 bg-gray-200 rounded w-1/2" />
+              <div className="h-9 bg-gray-200 rounded-xl w-40 mt-2" />
+            </div>
+          </div>
+
+          {/* Skeleton: scorecard */}
+          <div className="bg-white rounded-2xl border border-gray-100 p-6 animate-pulse">
+            <div className="flex items-center justify-between mb-5">
+              <div className="h-5 bg-gray-200 rounded w-24" />
+              <div className="h-7 bg-gray-200 rounded-full w-32" />
+            </div>
+            <div className="flex justify-around mb-6">
+              {[0, 1, 2].map((i) => (
+                <div key={i} className="flex flex-col items-center gap-2">
+                  <div className="w-20 h-20 rounded-full bg-gray-200" />
+                  <div className="h-3 bg-gray-200 rounded w-16" />
+                </div>
+              ))}
+            </div>
+            <div className="h-20 bg-gray-100 rounded-xl mb-4" />
+            <div className="grid grid-cols-2 gap-3">
+              <div className="h-16 bg-gray-100 rounded-xl" />
+              <div className="h-16 bg-gray-100 rounded-xl" />
+            </div>
+          </div>
+
+          {/* Skeleton: comment insights */}
+          <div className="bg-white rounded-2xl border border-gray-100 p-6 animate-pulse">
+            <div className="h-5 bg-gray-200 rounded w-40 mb-4" />
+            <div className="space-y-4">
+              {[0, 1, 2].map((i) => (
+                <div key={i} className="border border-gray-100 rounded-xl p-4 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="h-3 bg-gray-200 rounded w-24" />
+                    <div className="h-5 bg-gray-200 rounded-full w-20" />
+                  </div>
+                  <div className="h-3 bg-gray-100 rounded w-full" />
+                  <div className="h-3 bg-gray-100 rounded w-3/4" />
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       ) : error ? (
         <div className="max-w-3xl mx-auto px-6 py-16 text-center">
