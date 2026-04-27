@@ -67,21 +67,27 @@ export default function Home() {
     if (!file.type.startsWith('image/')) return;
     const reader = new FileReader();
     reader.onload = async (e) => {
-      const base64 = (e.target?.result as string).split(',')[1];
+      const dataUrl = e.target?.result as string;
+      const [prefix, base64] = dataUrl.split(',');
+      const mediaType = prefix.match(/data:(image\/[^;]+);/)?.[1] || 'image/jpeg';
       setIsSearching(true);
       setHasSearched(true);
       try {
         const res = await fetch('/api/vision', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ image: base64 }),
+          body: JSON.stringify({ image: base64, mediaType }),
         });
         const data = await res.json();
         if (data.query) {
           setQuery(data.query);
           handleSearch(data.query);
+        } else {
+          console.error('Vision API returned no query:', data);
+          setIsSearching(false);
         }
-      } catch {
+      } catch (err) {
+        console.error('Image upload failed:', err);
         setIsSearching(false);
       }
     };
