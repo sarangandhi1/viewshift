@@ -134,12 +134,12 @@ export default function Home() {
 
       {/* Hero */}
       <section className="max-w-3xl mx-auto px-6 pt-16 pb-10 text-center">
-        <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-3 leading-tight">
-          YouTube search.<br/>
-          <span className="text-[#6C63FF]">Uncomplicated.</span>
+        <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4 leading-tight">
+          YouTube, <span className="text-[#6C63FF]">uncomplicated.</span><br/>
+          Search like you actually want to.
         </h1>
-        <p className="text-gray-500 text-lg mb-10">
-          Find the exact video, moment, and comment that solves your problem — not what the algorithm wants you to watch.
+        <p className="text-gray-500 text-lg mb-10 max-w-2xl mx-auto">
+          Find the right video, the right moment, and the comments that actually help — without fighting the algorithm.
         </p>
 
         {/* Main Search Box */}
